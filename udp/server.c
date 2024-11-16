@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
   struct addrinfo hints, *results;
   struct sockaddr_storage their_addr;
   socklen_t their_addr_size = sizeof(their_addr);
-  char buffer[1024];
+  char buffer[1024], ip_address[INET_ADDRSTRLEN];
   int status, new_fd;
 
   memset(&hints, 0, sizeof(hints));
@@ -62,6 +62,7 @@ int main(int argc, char *argv[]){
   printf("Started server, waiting on connections...\n");
 
   signal(SIGINT, handle_close);
+
   while(1){
         int received = recvfrom(fd, buffer, sizeof(buffer), 0, (struct sockaddr*) &their_addr, &their_addr_size);
 
@@ -72,9 +73,11 @@ int main(int argc, char *argv[]){
           printf("Connection closed\n");          
           break;
         }
+        
+       inet_ntop(results->ai_family, &(((struct sockaddr_in *) &their_addr)->sin_addr), ip_address, INET_ADDRSTRLEN);
        buffer[received] = '\0';
 
-       printf("Received message: %s\n", buffer);
+       printf("Received message: %s from %s\n", buffer, ip_address);
     }
 
   handle_close();
