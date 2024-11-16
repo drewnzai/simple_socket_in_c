@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
+#include <stdio.h>
 
 int fd = -1;
 
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]){
   struct addrinfo hints, *results;
   struct sockaddr_storage their_addr;
   socklen_t their_addr_size = sizeof(their_addr);
-  char buffer[1024];
+  char buffer[1024], ip_addr[INET_ADDRSTRLEN];
 
   printf("Starting the client...\n");
 
@@ -52,9 +53,10 @@ int main(int argc, char *argv[]){
     exit(1);
   }
 
+  inet_ntop(results->ai_family, &(((struct sockaddr_in *) results)->sin_addr), ip_addr, INET_ADDRSTRLEN);
   signal(SIGINT, handle_close);
 
-  printf("Client started successfully, sending on port %s\n", argv[1]);
+  printf("Client started successfully, sending on %s:%s\n", ip_addr, argv[1]);
 
   while(1){
     printf("Enter the message: ");
@@ -74,6 +76,22 @@ int main(int argc, char *argv[]){
     }
 
     printf("Bytes sent: %d\n", sent); 
+
+    int received = recv(fd, buffer, sizeof(buffer), 0);
+        
+    if(received < 0){
+      perror("Error receiving data");
+      break;
+    }else if(received == 0){
+      printf("Connection closed\n");          
+      break;
+    }
+
+    buffer[received] = '\0';
+
+    printf("Received message: %s\n", buffer);
+
+    memset(buffer, 0, sizeof(buffer));
   }
 
   handle_close();

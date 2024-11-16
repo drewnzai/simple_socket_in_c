@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
   struct addrinfo hints, *results;
   struct sockaddr_storage their_addr;
   socklen_t their_addr_size = sizeof(their_addr);
-  char buffer[1024];
+  char buffer[1024], ip_addr[INET_ADDRSTRLEN];
   int status, new_fd;
 
   memset(&hints, 0, sizeof(hints));
@@ -59,6 +59,8 @@ int main(int argc, char *argv[]){
     exit(1);
   }
 
+  freeaddrinfo(results);
+
   printf("Started server, waiting on connections...\n");
 
   signal(SIGINT, handle_close);
@@ -67,6 +69,10 @@ int main(int argc, char *argv[]){
 
   while(1){
     new_fd = accept(fd, (struct sockaddr*) &their_addr, &their_addr_size);
+
+    inet_ntop(((struct sockaddr *) &their_addr)->sa_family, &(((struct sockaddr_in *) &their_addr)->sin_addr), ip_addr, INET_ADDRSTRLEN);
+
+    printf("Accepted connection from %s\n", ip_addr);
 
     while(1){
         int received = recv(new_fd, buffer, sizeof(buffer), 0);
@@ -78,9 +84,33 @@ int main(int argc, char *argv[]){
           printf("Connection closed\n");          
           break;
         }
-       buffer[received] = '\0';
 
-       printf("Received message: %s\n", buffer);
+        buffer[received] = '\0';
+
+        printf("Received message: %s\n", buffer);
+
+        memset(buffer, 0, sizeof(buffer));
+        
+        printf("Reply: ");
+        
+        fgets(buffer, sizeof(buffer), stdin);
+        
+        if(strncmp(buffer, "exit", 4) == 0){
+          break;
+        }
+
+        buffer[(strlen(buffer)) -1] = '\0';
+
+        int sent = send(new_fd, buffer, strlen(buffer), 0);
+
+        if(sent < 0){
+          perror("Error sending data");
+          break;
+        }
+
+        printf("Bytes sent: %d\n", sent);
+
+        memset(buffer, 0, sizeof(buffer));
     }
     
     shutdown(new_fd, 2);
@@ -88,7 +118,6 @@ int main(int argc, char *argv[]){
   }
 
   handle_close();
-  freeaddrinfo(results);
 
   return 0;
 
