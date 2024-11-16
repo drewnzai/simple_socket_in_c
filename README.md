@@ -1,9 +1,9 @@
 # Simple Socket Implementation
 
 ## TCP
-
 This is a simple TCP socket that can semd simple text messages between a client and server.
  
+ Head over to the **tcp** folder/directory for the TCP socket implementation and **udp** for the UDP socket implementation.
 
 To compile the server code, open a terminal and run
 
