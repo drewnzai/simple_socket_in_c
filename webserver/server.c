@@ -48,7 +48,6 @@ int main(int argc, char *argv[]){
      ((struct sockaddr *) &client_addr),
      &client_addr_size);
 
-    
     while(1){
 
       int received = recv(servicing_fd, buffer, sizeof(buffer), 0);
@@ -72,7 +71,9 @@ int main(int argc, char *argv[]){
         break;
      }
 
-      inet_ntop(((struct sockaddr *) &client_addr)->sa_family, &(((struct sockaddr_in *) &client_addr)->sin_addr), ip_addr, INET_ADDRSTRLEN);
+      inet_ntop(((struct sockaddr *) &client_addr)->sa_family,
+                &(((struct sockaddr_in *) &client_addr)->sin_addr),
+                ip_addr, INET_ADDRSTRLEN);
 
       printf("\nAccepted connection from %s\nFile Request: %s\n", ip_addr, file_name);
 
