@@ -48,6 +48,7 @@ int main(int argc, char *argv[]){
      ((struct sockaddr *) &client_addr),
      &client_addr_size);
 
+    
     while(1){
 
       int received = recv(servicing_fd, buffer, sizeof(buffer), 0);
@@ -71,25 +72,47 @@ int main(int argc, char *argv[]){
         break;
      }
 
-      inet_ntop(((struct sockaddr *) &client_addr)->sa_family,
-                &(((struct sockaddr_in *) &client_addr)->sin_addr),
-                ip_addr, INET_ADDRSTRLEN);
+      inet_ntop(((struct sockaddr *) &client_addr)->sa_family, 
+                &(((struct sockaddr_in *) &client_addr)->sin_addr), 
+                ip_addr,
+                INET_ADDRSTRLEN);
 
       printf("\nAccepted connection from %s\nFile Request: %s\n", ip_addr, file_name);
 
       memset(buffer, 0, sizeof(buffer));
 
-      if((file = fopen(file_name, "r")) != NULL){
-
-        // Used to read lines from the file then send them to the client
-        while((fgets(buffer, sizeof(buffer), file)) != NULL){
-          sent += send(servicing_fd, buffer, strlen(buffer), 0);
-        }
+      if((file = fopen(file_name, "rb")) != NULL){
         
-        printf("Total number of bytes sent for this request: %d\n", sent);
-        sent = 0;
+        // Traverse the whole file
+        if((fseek(file, 0, SEEK_END)) < 0){
+            fprintf(stderr, "Could not traverse file contents\n");
+            break;
+          }
+
+        // Determine the size of the file; rewind(file*) returns the file pointer to the starting point
+        size_t file_size = ftell(file);
+        rewind(file);
+
+        void *file_contents = malloc(file_size);
+
+        if((fread(file_contents, 1, file_size, file)) != file_size){
+            fprintf(stderr, "Could not read the file\n");
+            break;
+          }
+
         fclose(file);
 
+        // https://github.com/IonelPopJara/http-server-c/blob/master/app/server.c
+        sprintf(buffer, 
+                "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: %ld\r\n\r\n%s", 
+                file_size,
+                (char *) file_contents);
+
+		    printf("Sending response: %s\n", buffer);
+
+        sent = send(servicing_fd, buffer, strlen(buffer), 0);
+
+        free(file_contents);        
       }else{
           printf("Could not process request; File does not exist\n");
       }

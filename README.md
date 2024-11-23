@@ -28,7 +28,9 @@ Open the **webserver** folder and compile the *server.c* code and run it just li
 
 In your browser, enter
 
-``localhost:<port>/index.html
+``localhost:<port>/sample
 ``
 
-This should return the text version of the index.html file in the directory. Try it out with other filenames in place of *index.html*
+This should return the sample file in the directory, preferrably as a download.
+
+I could work on this to handle other usecases but frankly, I've lost interest and learnt what I wanted. For a better project, see: https://github.com/IonelPopJara/http-server-c/blob/master/app/server.c

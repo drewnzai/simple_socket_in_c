@@ -12,4 +12,5 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/sendfile.h>
 #endif
