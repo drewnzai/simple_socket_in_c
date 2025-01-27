@@ -1,3 +1,4 @@
+The feature is under development
 # Simple Socket Implementation
 
 This is a simple TCP socket that can semd simple text messages between a client and server.
